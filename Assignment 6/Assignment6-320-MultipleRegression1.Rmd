@@ -1,0 +1,78 @@
+---
+title: "BAS 320 - Assignment 6 - Multiple Regression Part 1"
+author: "Jack Guptill"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+
+************************************************************************************
+
+```{r reading in data for assignment2}
+library(regclass)
+setwd('C:/Users/jackg/OneDrive - University of Tennessee/UTK Fall 23/BAS 320/Homework Files')
+getwd()  #This should output the path to your BAS folder; change with Session, Set Working Directory if not
+load("BAS320datasetsFall23.RData") #Note updated .RData from from Assignment 2
+
+FOOTBALL = COLLEGEFOOTBALL[,c('Win', 'Redzone.Scores', 'Redzone.Points', 'Pass.Yards.Per.Game.Allowed', 'Pass.Yards.Attempt', 'Redzone.Attempts')]
+
+#Remember that whatever data you choose needs:
+# * One Y variable
+# * At least 3 Xs
+# * In the model you fit, at least 2 X's need to NOT be statistically significant
+
+#head(FOOTBALL)
+```
+
+************************************************************************************
+
+## Analysis of Wins for College Football Teams
+
+I'm using a multiple regression model to predict wins for college football teams by knowing the amount of redzone scores, redzone points, pass yards per game allowed, the average pass yards attempted, and the percentage of redzone attempts. 
+
+
+Overall, I am interested in how well you could predict wins from an offensive and defensive statistic perspective and how narrow of a prediction interval of wins you could get. I am also interested in what predictor variable on its own out of the ones I have chosen have the most weight when it comes to teams winning games. 
+
+The data I am using comes from the BAS320 Fall data set package and the dataframe itself contains 970 rows with 145 variables. I have reduced the amount of columns within a subset to 6 columns for my analysis. 
+
+```{r model using original variables}
+library(regclass)
+
+N = lm(Win~. , data=FOOTBALL) #the model
+
+summary(N) #Look at a summary of the model
+#summary(FOOTBALL) #Sumamry of Dataframe for average values per column
+
+TO.PREDICT <- data.frame(Redzone.Scores = c(38.88), Redzone.Points = c(.8375),
+                         Pass.Yards.Per.Game.Allowed=c(228.4),
+                         Pass.Yards.Attempt = c(7.359),
+                         Redzone.Attempts=(46.45)) #Set up a dataframe so you can predict at the average value of each predictor
+
+predict(N,newdata=TO.PREDICT,interval="prediction") #Get 95% prediction intervals
+
+#Partial F test for non-significant variables
+
+#N.simple = lm(Win~. -Redzone.Points -Redzone.Attempts, data=FOOTBALL)
+
+
+#anova(N.simple,N) #simple model excluding predictor x values that are not statistically significant. 
+
+#check_regression(N.simple, extra=TRUE, prompt=TRUE)
+```
+
+The regression equation is:   
+
+`Wins = .859 + .179*Redzone.Scores + .164*Redzone.Points -.022*Pass.Yards.Per.Game.Allowed + .464*Pass.Yards.Attempt + .003*Redzone.Attempts`
+
+There is a 95% chance that the true amount of wins for a team that contain the mean values for every predictor used in the model is between 3.09 and 9.84 where the most likely amount of wins is approximately 6 games (rounding down to a whole number).  
+
+Two otherwise identical teams that differ by 1 redzone Scores, are expected to differ in wins by .1787 games, where the team with more redzone scores is expected to have more wins. Redzone scores, in terms of the model, are statistically significant as the p value is less than .05 (.001). Knowing that it is statistically significant, we know that this predictor variable is bringing in new information to the model and is reducing the sum of squared errors. 
+
+In comparison, two otherwise identical teams that differ by 1 pass yard per game allowed, are expected to differ by .02 wins , where the team with more pass yards per game allowed are expected to have a lower amount of wins. This predictor variable is also statistically significant, meaning that it brings forth new additional information to the model. 
+
+Having a partial f test greater than .05 suggest that the predictor variables used in the test do not bring in any new additional information to the model on their own. This could potentially be due to multicollinearity. We can drop both the redzone attempts and redzone points predictor variables as the partial f test was greater than .05 at .9977. 
+
+The relationship between wins and each of the predictor variables needs to be linear, homoscedastic (equal spread), and the residuals need to be approximately normal. When evaluating the regression model each predictor shows linear data in an eclipse shape with equal spread along with the qq plot displaying normality of the residuals. With the specific data we are using for the model we are assuming that if there was enough duplicate values that the overall model would have a p-value greater than .05. We can make this assumption given that the each individual plot for each predictor value and the overall model seem to have linear data. 
