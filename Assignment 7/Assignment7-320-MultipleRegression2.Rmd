@@ -1,0 +1,160 @@
+---
+title: "BAS 320 - Assignment 7 - Multiple Regression Part 2"
+author: "Jack Guptill"
+output:
+  word_document: default
+---
+
+
+************************************************************************************
+
+[//]:   (Submission notes: a knitted version of the assignment must be uploaded to Canvas before the deadline along with the raw .Rmd.  I recommend knitting to a Word document, adding any desired extra content or formatting, and submitting that or the Word document that has been saved as a PDF.  Late work is not accepted.)
+
+[//]:   (Instructions for Assignment 7:  follow the instructions on Canvas.  This chunk of code is what you can use to read in data files. If you're working with data in  `BAS320datasetsFall23.RData` you can uncomment the line.  Otherwise, you'll want to come up with names for your data frames and add some `read.csv` commands here (illustrated with a few examples in the R chunk below) )
+
+```{r reading in data for assignment2}
+library(regclass)
+setwd('C:/Users/jackg/OneDrive - University of Tennessee/UTK Fall 23/BAS 320/Homework Files')  #This should output the path to your BAS folder; change with Session, Set Working Directory if not
+
+load("BAS320datasetsFall23.RData")  #Note updated .RData from from Assignment 2
+
+
+#Remember that whatever data you choose needs:
+# * One Y variable
+# * At least 3 numeric Xs but no more than 8 Xs
+# * No categorical predictors
+# * In the model you fit, at least 2 X's NEED TO BE STATISTICALLY SIGNIFICANT
+
+#NOTE 1:  if your dataset has categorical predictors, null them out!  Only numeric predictors allowed here
+#DATA$categoricalpredictor <- NULL
+
+#NOTE 2:  if you have more than 1000 datapoints, take a random sample of 1000 (otherwise
+#check_regression may not work)
+#set.seed(320); DATA3 <- DATA2[ sample(1:nrow(DATA2),size=1000), ]
+
+
+###################################################################################
+
+FOOTBALL = COLLEGEFOOTBALL[,c('Win', 'Pass.Attempts','Redzone.Attempts', 'Off.Yards', 'Yards.Allowed')]
+FULLFOOTBALL = lm(Win~.,data=FOOTBALL)
+drop1(FULLFOOTBALL, test="F")
+
+
+
+###################################################################################
+set.seed(320); HOME2 <- HOME[ sample(1:nrow(HOME),size=1000), ] #taking a sample of 1000 rows
+
+HOME2$bedrooms <- as.integer(HOME2$bedrooms) #changing bedrooms column to an integer instead of a factor
+HOME3 = HOME2[,c(1:6,10:12,17,18)] #subsetting to the columns needed
+
+head(HOME3) #verifying I have what I need in terms of columns
+
+
+#NOTE 3:  if you have a dataset with a LOT of predictors, restrict yourself to the "top 8"
+#To identify which are the top 8, one way is:
+#1)  Fit the full model:  M <- lm(y~.,data=DATA)
+#2)  Run drop1(M,test="F")
+#3)  The top 8 will have the largest 8 F values
+
+
+FULLHOME = lm(price ~.,data=HOME3)
+drop1(FULLHOME, test="F")
+
+HOME3 = HOME3[,c("price", "bedrooms", "bathrooms", "floors", "yr_built", "sqft_living15", "sqft_lot15")] #only bringing in the best columns
+```
+
+************************************************************************************
+
+The following gives a skeleton/template that you could fill out to narrate your analysis.  You'll need to adapt words throughout to make it specific to your dataset.  Feel free to deviate from the skeleton as long as you're hitting all the required points (see Rubric and detailed list of requirements on Canvas)!  Delete this paragraph (and any prompts provided in other paragraphs) before knitting/submitting.  The document should flow nicely as a professional report.  
+
+Code you should keep:  fitting the model, running summary, making predictions
+
+Code you should delete:  reading in the data, anything that isn't directly requested
+
+
+## Analysis of ... (replace the ... with what you're analyzing)
+
+I'm using a multiple regression model to predict Y = ... (specify your Y variable in plain English, don't necessarily use the column name in the data) from ... (describe the X variables you're using; if you only have a few you can name them all in plain English; if you have a LOT of predictors you could also specify what kinds of predictors they are, e.g. physical characteristics such as height and weight of each person in the household)
+
+I'm making this model because ... (tell us why you've chosen this relationship investigate; could be out of curiosity, or maybe being able to make this prediction would hold value to a business...).  
+
+The data I'm using comes from ... (if kaggle, tell us the URL; if the BAS320datasetsFall23.RData  file you can just tell us that) and contains a total of ... rows and ... total predictors (always important to tell us how much data).
+
+
+## Investigation of the relationship between ... (replace with Y) and ... (replace with an X)
+
+(In this section, investigate the possibility that the relationship between your Y variable and *one* of your predictors might be non-linear.  Make scatterplots of Y vs. X for each of your numeric predictors one by one and see if any of them are.  Hopefully you'll find one that at least is slightly non-linear.  Fit the simple linear regression predicting Y from this X and run it through `choose_order`.  Include the output and plot.  Does a polynomial model improve the fit?)
+
+(You only need a paragraph for this section summarizing the results.  Tell us what you're investigating and what your conclusions are as to the appropriate power of X to model the relationship between Y and X.)
+
+```{r polynomial model}
+#Finding the most non-linear predictor variable
+
+M = lm(Win~Pass.Attempts, data=FOOTBALL); choose_order(M)
+M = lm(Win~Redzone.Attempts, data=FOOTBALL); choose_order(M)
+M = lm(Win~Off.Yards, data=FOOTBALL); choose_order(M)
+M = lm(Win~Yards.Allowed, data=FOOTBALL); choose_order(M)
+
+#check_regression(HOMEMODEL, extra=TRUE)
+
+NONLINEAR = lm(price~sqft_living15, data=HOME3)
+
+#Fit a simple linear regression
+
+```
+
+## Multiple regression model and checking of assumptions
+
+(In this section, you'll fit the "full" model with ~ ., though feel free to fine-tune your model so that it only uses predictors that are statistically significant, or maybe just the 3-8 most significant predictors, or just has predictors you want to examine.  You do not need to include any polynomial terms from your analysis in the previous part.  You'll fit the model and then run it through `check_regression` with additional arguments `extra=TRUE`.   *If the assumptions are SEVERELY violated, try a different set of predictors or a different relationship; we don't want you using a very obviously bad model*.  Include the plots and the results of the statistical tests.  If you have a LOT of predictors, it's ok after knitting to remove some of the less interesting residual vs. predictors plots but include the standard "set of 3" along with at least 3 residuals vs. predictor plots)
+
+(Talk about whether your model provides a reasonable reflection of reality.  What statistical tests are passed?  Of the ones that are failed, are the violations severe enough to invalidate the model or small enough to continue to use it?  Remember you shouldn't be reporting on a *very* obviously bad model!  Some violations are ok!)
+
+```{r multiple regression model}
+#M <- lm()  #Fit a multiple linear regression
+#check_regression(M,extra=TRUE)
+```
+
+## Identification of influential points
+
+(In this section, you'll run the model through `influence_plot`.  Include the plot and a list of row numbers that gave the influential points.  If this is a LONG list, edit it down post knitting to just have a line of numbers)
+
+(Describe how many influential points are in your regression.  Influential points are poorly predicted by the model, so identify *why* at least one of these points is influential, i.e., if they are very unusual in terms of one predictor variable or a combination of predictor variables. I'd recommend printing out an influential row and perhaps a summary of the column(s) in which its unusual)
+
+```{r influence plot}
+#M <- lm()  #Fit a multiple regression model
+#influence_plot(M)
+```
+
+## Investigation of an interaction between ____ and ____ (replace with what you're looking at)
+
+(In this section, you'll identify the strongest *interaction* between the predictor variables in your data.  You'll want to use the "twiddle dot squared" shortcut shown below.  Run see_interactions and pick out the strongest interaction.  You'll want to add in additional arguments `cex=0.6` to make the font smaller, `pos="topleft"` or "topright" or "bottomleft" or "bottomright" to specify where you want the legends, and `many=TRUE`.  *Do not include this output or these plots in the final report*)
+
+(Once you've identified the interaction, fit the model predicting from only those two predictors and their interaction, e.g. `y~x1*x2`.  Include the output of running `summary` and of running `visualize_model`; you can add the same arguments as in `see_interactions` to make it look nicer.)
+
+(In this paragraph, let us know what interaction you're looking at.  Write out three regression equations:  the one from your model [`y=intercept + b1*x1 + b2*x2 + b3*x1*x3`], the regression equation when x2 = its 25th percentile [1st Qu.] and the regression equation when x2 = its 75th percentile [3rd Qu.])
+
+(Comment on how the relationship between y and x1 changes for different values of x2.  As x2 increases, does the relationship between y and x1 strengthen, weaken, flip signs?)
+
+(Comment on how the difference in y values among people with identical small values of x2, identical median values of x2, and identical large values of x2 changes as we consider individuals with progressively larger values of x2)
+
+```{r interaction}
+#You'll need to run the next 2 lines, but not include them in your report
+#M <- lm( y ~ .^2, data=DATA) # do all 2 way interactions
+#see_interactions(M,cex=0.6,pos="topleft",many=TRUE)
+#This is what we want to see in your report
+#M <- lm( y ~ x1*x2, data=DATA)
+#summary(DATA$x1)
+#visualize_model(M)
+
+
+```
+
+
+
+
+
+
+
+
+
+
