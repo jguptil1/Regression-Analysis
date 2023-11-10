@@ -8,10 +8,6 @@ output:
 
 ************************************************************************************
 
-[//]:   (Submission notes: a knitted version of the assignment must be uploaded to Canvas before the deadline along with the raw .Rmd.  I recommend knitting to a Word document, adding any desired extra content or formatting, and submitting that or the Word document that has been saved as a PDF.  Late work is not accepted.)
-
-[//]:   (Instructions for Assignment 7:  follow the instructions on Canvas.  This chunk of code is what you can use to read in data files. If you're working with data in  `BAS320datasetsFall23.RData` you can uncomment the line.  Otherwise, you'll want to come up with names for your data frames and add some `read.csv` commands here (illustrated with a few examples in the R chunk below) )
-
 ```{r reading in data for assignment2}
 library(regclass)
 setwd('C:/Users/jackg/OneDrive - University of Tennessee/UTK Fall 23/BAS 320/Homework Files')  #This should output the path to your BAS folder; change with Session, Set Working Directory if not
@@ -35,19 +31,19 @@ load("BAS320datasetsFall23.RData")  #Note updated .RData from from Assignment 2
 
 ###################################################################################
 
-FOOTBALL = COLLEGEFOOTBALL[,c('Win', 'Pass.Attempts','Redzone.Attempts', 'Off.Yards', 'Yards.Allowed')]
-FULLFOOTBALL = lm(Win~.,data=FOOTBALL)
-drop1(FULLFOOTBALL, test="F")
+BEER = read.csv('C:/Users/jackg/OneDrive - University of Tennessee/UTK Fall 23/BAS 320/Homework Files/Assignment 7/beer_profile_and_ratings.csv')
+
+BEER = BEER[,c(6:25)]
+set.seed(880); BEER2 <- BEER[ sample(1:nrow(BEER),size=1000), ] #taking a sample of 1000 rows
+#head(BEER2)
+M = lm(review_aroma~.,data=BEER2)
+drop1(M, test="F")
 
 
+#good columns = spices, Hoppy, review_taste, Bitter, Sour, Body
 
+BEER2 = BEER2[, c('Spices', 'Hoppy', 'review_taste', 'Bitter', 'Sour', 'Body', 'review_aroma')]
 ###################################################################################
-set.seed(320); HOME2 <- HOME[ sample(1:nrow(HOME),size=1000), ] #taking a sample of 1000 rows
-
-HOME2$bedrooms <- as.integer(HOME2$bedrooms) #changing bedrooms column to an integer instead of a factor
-HOME3 = HOME2[,c(1:6,10:12,17,18)] #subsetting to the columns needed
-
-head(HOME3) #verifying I have what I need in terms of columns
 
 
 #NOTE 3:  if you have a dataset with a LOT of predictors, restrict yourself to the "top 8"
@@ -56,62 +52,45 @@ head(HOME3) #verifying I have what I need in terms of columns
 #2)  Run drop1(M,test="F")
 #3)  The top 8 will have the largest 8 F values
 
-
-FULLHOME = lm(price ~.,data=HOME3)
-drop1(FULLHOME, test="F")
-
-HOME3 = HOME3[,c("price", "bedrooms", "bathrooms", "floors", "yr_built", "sqft_living15", "sqft_lot15")] #only bringing in the best columns
 ```
 
-************************************************************************************
-
-The following gives a skeleton/template that you could fill out to narrate your analysis.  You'll need to adapt words throughout to make it specific to your dataset.  Feel free to deviate from the skeleton as long as you're hitting all the required points (see Rubric and detailed list of requirements on Canvas)!  Delete this paragraph (and any prompts provided in other paragraphs) before knitting/submitting.  The document should flow nicely as a professional report.  
-
-Code you should keep:  fitting the model, running summary, making predictions
-
-Code you should delete:  reading in the data, anything that isn't directly requested
+***********************************************************************************
 
 
-## Analysis of ... (replace the ... with what you're analyzing)
+## Analysis of
 
-I'm using a multiple regression model to predict Y = ... (specify your Y variable in plain English, don't necessarily use the column name in the data) from ... (describe the X variables you're using; if you only have a few you can name them all in plain English; if you have a LOT of predictors you could also specify what kinds of predictors they are, e.g. physical characteristics such as height and weight of each person in the household)
+I'm using a multiple regression model to predict the review that a beer might get for it's aroma. The model to predict this aroma review will use the amount of spices, hops, bitterness, sourness, the body of the beer, and the overall review of the taste as predictors.
 
-I'm making this model because ... (tell us why you've chosen this relationship investigate; could be out of curiosity, or maybe being able to make this prediction would hold value to a business...).  
+I'm making this model primarily out of curiosity to see how plausible it is to predict something so subjective such as the aroma. I am also curious to the interactions of the predictors that will be taking place in the model. 
 
-The data I'm using comes from ... (if kaggle, tell us the URL; if the BAS320datasetsFall23.RData  file you can just tell us that) and contains a total of ... rows and ... total predictors (always important to tell us how much data).
+The data I'm using comes from kaggle (https://www.kaggle.com/datasets/ruthgn/beer-profile-and-ratings-data-set/data?select=beer_profile_and_ratings.csv) and contains 3197 rows with 25 variables. The specific subset that I will be using to build the model has 1000 rows and 7 variables. 
 
 
 ## Investigation of the relationship between ... (replace with Y) and ... (replace with an X)
 
-(In this section, investigate the possibility that the relationship between your Y variable and *one* of your predictors might be non-linear.  Make scatterplots of Y vs. X for each of your numeric predictors one by one and see if any of them are.  Hopefully you'll find one that at least is slightly non-linear.  Fit the simple linear regression predicting Y from this X and run it through `choose_order`.  Include the output and plot.  Does a polynomial model improve the fit?)
-
-(You only need a paragraph for this section summarizing the results.  Tell us what you're investigating and what your conclusions are as to the appropriate power of X to model the relationship between Y and X.)
+After running a simple linear relationship, looking at the relationship between the aroma review and the sourness, it seems to me that a polynomial model would improve the R squared value due to the non linear relationship trend that has developed. After analyzing the various orders to which the model could use, it seems that the third order would be the best increase the r^2 value from roughly 9% to a little less than 11%. While not a significant amount of increase to the R^2 value, it is nonetheless increasing it. Order three can be seen in the visualization as the green line with black being a zero order polynomial model. 
 
 ```{r polynomial model}
 #Finding the most non-linear predictor variable
+#good columns = spices, Hoppy, review_taste, Bitter, Sour, Body
+#M = lm(review_aroma~Spices, data=BEER2); choose_order(M)
+#M = lm(review_aroma~Hoppy, data=BEER2); choose_order(M)
+#M = lm(review_aroma~review_taste, data=BEER2); choose_order(M)
+#M = lm(review_aroma~Bitter, data=BEER2); choose_order(M)
+M = lm(review_aroma~Sour, data=BEER2); choose_order(M) #order three is the best
+#M = lm(review_aroma~Body, data=BEER2); choose_order(M)
 
-M = lm(Win~Pass.Attempts, data=FOOTBALL); choose_order(M)
-M = lm(Win~Redzone.Attempts, data=FOOTBALL); choose_order(M)
-M = lm(Win~Off.Yards, data=FOOTBALL); choose_order(M)
-M = lm(Win~Yards.Allowed, data=FOOTBALL); choose_order(M)
-
-#check_regression(HOMEMODEL, extra=TRUE)
-
-NONLINEAR = lm(price~sqft_living15, data=HOME3)
-
-#Fit a simple linear regression
 
 ```
 
 ## Multiple regression model and checking of assumptions
 
-(In this section, you'll fit the "full" model with ~ ., though feel free to fine-tune your model so that it only uses predictors that are statistically significant, or maybe just the 3-8 most significant predictors, or just has predictors you want to examine.  You do not need to include any polynomial terms from your analysis in the previous part.  You'll fit the model and then run it through `check_regression` with additional arguments `extra=TRUE`.   *If the assumptions are SEVERELY violated, try a different set of predictors or a different relationship; we don't want you using a very obviously bad model*.  Include the plots and the results of the statistical tests.  If you have a LOT of predictors, it's ok after knitting to remove some of the less interesting residual vs. predictors plots but include the standard "set of 3" along with at least 3 residuals vs. predictor plots)
-
-(Talk about whether your model provides a reasonable reflection of reality.  What statistical tests are passed?  Of the ones that are failed, are the violations severe enough to invalidate the model or small enough to continue to use it?  Remember you shouldn't be reporting on a *very* obviously bad model!  Some violations are ok!)
+After examining the output in testing the assumptions for a multiple regression model, the full model passes the tests for linearity when it came to the hops, taste review, bitterness, and sourness predictors. The model failed linearity for the spices and body predictor variables. It is important to note that linearity for the overall model failed due to a lack of duplicate values. If the model was more robust in overall sample size and a different ransom sample were to be taken, this condition might have passed. In the output it also states that we have failed both in equal spread and normality of the residuals. Due to our sample size being at least 25, we can further inspect the output graphs to override these decisions. Starting with the far left residual plot, it doesn't seem like we are violating linearity which confirms most of the test output. It also seems that the equal spread condition isn't grossly violated in any way. Data points seem to be roughly equal by eye. For the QQ plot it seems that we have minor peeling on bottom edge. We do however have skew at the top end of the graph. Based on this and my own opinion, I think the model does exhibit a reasonable reflection of reality due to the tests not being grossly violated in anyway. 
 
 ```{r multiple regression model}
-#M <- lm()  #Fit a multiple linear regression
-#check_regression(M,extra=TRUE)
+M =lm(review_aroma ~ Spices+Hoppy+review_taste+Bitter+Sour+Body,data=BEER2)
+summary(M)
+check_regression(M,extra=TRUE)
 ```
 
 ## Identification of influential points
@@ -120,32 +99,56 @@ NONLINEAR = lm(price~sqft_living15, data=HOME3)
 
 (Describe how many influential points are in your regression.  Influential points are poorly predicted by the model, so identify *why* at least one of these points is influential, i.e., if they are very unusual in terms of one predictor variable or a combination of predictor variables. I'd recommend printing out an influential row and perhaps a summary of the column(s) in which its unusual)
 
+For this model, we have 10 points of influence that contain both high leverage and a large deleted studentized residual. The specific row numbers can be found below and these data points are negatively impacted the overall model due to their overall influence. I want to focus on The 387th beer. It is is strange in the fact that has a low amount of hops, spice, overall taste review, sourness, and body, but it has a high bitterness and overall aroma score making it a point of influence. Please see the data frame bellow that outlays the percentile to which the predictors are for this beer. 
+
 ```{r influence plot}
-#M <- lm()  #Fit a multiple regression model
-#influence_plot(M)
+influence_plot(M)
+
+
+
+influential.rows <- influence_plot(M)$Leverage
+INFLUENCE <- data.frame( matrix(0,nrow=length(influential.rows),ncol=ncol(BEER2)) )
+names(INFLUENCE) <- names(BEER2)
+
+for (r in 1:length(influential.rows)) {
+  x <- as.numeric(BEER2[influential.rows[r],])
+  INFLUENCE[r,] <- sapply(1:length(x),function(i) { mean(BEER2[[i]] <= x[i])} )
+}
+round(INFLUENCE,digits=2)
 ```
 
-## Investigation of an interaction between ____ and ____ (replace with what you're looking at)
+## Investigation of an interaction between Hoppiness and the review of the taste
 
-(In this section, you'll identify the strongest *interaction* between the predictor variables in your data.  You'll want to use the "twiddle dot squared" shortcut shown below.  Run see_interactions and pick out the strongest interaction.  You'll want to add in additional arguments `cex=0.6` to make the font smaller, `pos="topleft"` or "topright" or "bottomleft" or "bottomright" to specify where you want the legends, and `many=TRUE`.  *Do not include this output or these plots in the final report*)
+I want to investigate the interaction of various levels of hoppiness for a beer and how the review taste impacts the overall aroma of the beer. 
 
-(Once you've identified the interaction, fit the model predicting from only those two predictors and their interaction, e.g. `y~x1*x2`.  Include the output of running `summary` and of running `visualize_model`; you can add the same arguments as in `see_interactions` to make it look nicer.)
+The overall regression equation for this interaction is as follows: 
 
-(In this paragraph, let us know what interaction you're looking at.  Write out three regression equations:  the one from your model [`y=intercept + b1*x1 + b2*x2 + b3*x1*x3`], the regression equation when x2 = its 25th percentile [1st Qu.] and the regression equation when x2 = its 75th percentile [3rd Qu.])
+review aroma = .410 + .881*review_taste - .006*Hoppy + .001*review_taste*Hoppy
 
-(Comment on how the relationship between y and x1 changes for different values of x2.  As x2 increases, does the relationship between y and x1 strengthen, weaken, flip signs?)
+For beers with the 25th percentile of Hoppy (19): 
+review aroma = .296 + .9*review_taste
 
-(Comment on how the difference in y values among people with identical small values of x2, identical median values of x2, and identical large values of x2 changes as we consider individuals with progressively larger values of x2)
+For beers with the 75th percentile of Hoppy (59): 
+review aroma = .056 + .94*review_taste
+
+As the review of the taste increases we see an increase in the aroma review. We see this as an overall positive relationship. The rate at which it increases however, is changed with how hoppy the beer is. With a hooppier beer, the rate is much stronger than a less hoppy beer. A "medium" beer in terms of hoppiness sits right in between the two. Knowing this, we can assume that there is an interaction between how hoppy the beer is and the aroma that a beer will get from the review of the taste.   
+
+For beers that have a relatively low amount of Hoppiness there seems to be a good amount of variation in the review of the aroma. As we get towards the median value of hoppiness (33) the variation widens and it looks to be getting wider as the hoppiness of a beer increases. 
+
+
 
 ```{r interaction}
 #You'll need to run the next 2 lines, but not include them in your report
-#M <- lm( y ~ .^2, data=DATA) # do all 2 way interactions
+#M <- lm(review_aroma ~ .^2, data=BEER2) # do all 2 way interactions
 #see_interactions(M,cex=0.6,pos="topleft",many=TRUE)
 #This is what we want to see in your report
-#M <- lm( y ~ x1*x2, data=DATA)
-#summary(DATA$x1)
-#visualize_model(M)
 
+M <- lm(review_aroma ~ review_taste*Hoppy, data=BEER2)
+summary(M)
+
+visualize_model(M, cex=0.6,pos="topleft",many=TRUE)
+
+#summary(BEER2$Hoppy)
 
 ```
 
