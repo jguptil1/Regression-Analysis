@@ -82,11 +82,24 @@ The data I'm using comes from the BAS 320 library and it contains a total of 703
 
 (A requirement for this part is that at least one of the following must be true:  1)  the indicator variable is statistically significant in the model without an interaction or 2) the interaction variable is statistically significant in the model with an interaction.  What you'll write depends on whether the interaction is or is not statistically significant.)
 
-(If the interaction IS statistically significant, write out the full regression equation and the implicit regression equations for both levels.  Write a short paragraph telling us which level has the stronger relationship between Y and X1.  Further, discuss the difference in the average value of Y between levels when X1 is small and when X1 is big.  Does the difference shrink?  Grow?  Flip signs?  Because this requires more writing, you'll get a small bonus if the interaction is statistically significant.)
+For the model that I built both the indicator variable with and without the interaction is statistically significant. Due to it being statistically significant with the the interaction the full regression equation is as follows: 
 
-(If the interaction IS NOT statistically significant, write out the full regression equation and the implicit regression equations for both levels.  Write a short paragraph telling us which level has the higher average value of Y at all values of X1  (and by how much).)
+`Customer Tenure = 22.14035 + .195*MonthlyCharges - 8.45PaperlessBilling + .061*MonthlyCharges*PaperlessBilling`
+
+Implicit Equation for Cellphone Coverages that don't include Paperless Billing:
+
+`Customer Tenure = 22.14035 + .195*MonthlyCharges`
+
+Implicit Equation for Cellphone Coverages that do include Paperless Billing: 
+
+`Customer Tenure = 13.690 + .256*MonthlyCharges`
+
+Customers that have paperless billing have a stronger relationship between their tenure and the monthly charges than does the relationship for those that do not have paperless billing.We can infer that this might be due to an underlying increase in overall tolerance because of the feature of being paperless. The difference in the average value of the monthly payment shrinks between having paperless billing and not having paperless billing.
+
 
 ```{r task 1}
+#summary(TELCO$tenure) #32.42 as the mean of Tenure
+
 library(regclass)
 M1 = lm(tenure~MonthlyCharges+PaperlessBilling,data=TELCO) #Fit a regression predicting y from x1 (numeric) and x2 (categorical) that EXCLUDES the interaction
 summary(M1)
