@@ -1,0 +1,128 @@
+---
+title: "BAS 320 - Assignment 8 - Categorical Predictors"
+author: "Your name here"
+output:
+  word_document: default
+---
+
+
+************************************************************************************
+
+[//]:   (Submission notes: a knitted version of the assignment must be uploaded to Canvas before the deadline along with the raw .Rmd.  I recommend knitting to a Word document, adding any desired extra content or formatting, and submitting that or the Word document that has been saved as a PDF.  Late work is not accepted.)
+
+[//]:   (Instructions for Assignment 8:  follow the instructions on Canvas.  This chunk of code is what you can use to read in data files. If you're working with data in  `BAS320datasetsFall23.RData` you can uncomment the line.  Otherwise, you'll want to come up with names for your data frames and add some `read.csv` commands here (illustrated with a few examples in the R chunk below) )
+
+```{r reading in data for assignment2}
+library(regclass)
+setwd('C:/Users/jackg/OneDrive - University of Tennessee/UTK Fall 23/BAS 320/Homework Files')  #This should output the path to your BAS folder; change with Session, Set Working Directory if not
+
+
+load("BAS320datasetsFall23.RData") 
+
+#Remember that whatever data you choose needs have:
+# * One numeric Y variable
+# * At least one numeric X1 that is a statistically significant predictor of Y by itself
+
+summary(lm(TotalCharges~tenure,data=TELCO))
+summary(lm(tenure~MonthlyCharges,data=TELCO)) #verifing x3
+# * At least one categorical X2 with 2 levels (you may be able to create this if your data doesn't have it).  Each level needs to have at least 20 individuals in it.
+summary(TELCO$Churn)
+
+# * At least one categorical X4 with between 3-12 levels (you may be able to create this if your data doesn't have it).  Each level needs to have at least 20 individuals in it.
+summary(TELCO$PaymentMethod)
+
+#NOTE 1:  if you have categorical variable you'd like to use but it has "too many" levels, you can use the following lines of code (after adapting it with the name of your columns and dataset and uncommenting it) to get it to a target number of levels.  It basically combines all the least common levels of the categorical variable into a new level called "Combined", leaving with you the desired number of levels.  Run a summary() though to make sure because if there are ties for frequencies, it may leave you with more or fewer than the target!
+ 
+#Data Transformation of Parent Education to three levels
+summary(TESTSCORES$ParentEducation)
+  library(regclass)
+  target <- 2
+  threshold <- sort(table(TESTSCORES$ParentEducation),decreasing=TRUE)[target]
+  TESTSCORES$College <- combine_rare_levels(TESTSCORES$ParentEducation,threshold)$values
+  summary(TESTSCORES$College)
+
+
+TESTSCORES$new_ParentEducation = as.factor(TESTSCORES$new_ParentEducation)
+summary(TESTSCORES$new_ParentEducation)
+
+
+#NOTE 2:  you can turn a numeric predictor into a categorical variable by adapting the following code to your data.  It will usually give you the target number of levels, but sometimes fewer if there are a lot of duplicate numerical values.
+
+#You'll get values like [42,70], (72,100], etc. that have groups the numerical values into categories.  If you see a [ or ], that means the interval includes that value.  If you see a ( or ) it means the interval doesn't include that value.  (72,100] mean GREATER than 72 and up to and including 100)
+
+target <- 2
+breaks <- unique( quantile(HIT$duration_ms,seq(from=0,to=1,length=target+1)) )
+HIT$length <- cut(HIT$duration_ms,breaks,include.lowest=TRUE)
+
+```
+
+************************************************************************************
+
+The following gives a skeleton/template that you could fill out to narrate your analysis.  You'll need to adapt words throughout to make it specific to your dataset.  Feel free to deviate from the skeleton as long as you're hitting all the required points (see Rubric and detailed list of requirements on Canvas)!  Delete this paragraph (and any prompts provided in other paragraphs) before knitting/submitting.  The document should flow nicely as a professional report.  
+
+Code you should keep:  lm, summary, drop1, visualize_model; basically everything in the R chunks below this
+
+
+Code you should delete after knitting: code reading in the data, combining categories, creating categorical variables from numerical ones if you used it; basically everything in the R chunk above this (and any other code you created that isn't requested)
+
+
+
+## Analysis of Customer Tenure by Monthly Charges and the Option of Paperless Billing
+
+I'm using a multiple regression model to predict how long someone might be the customer for a phone company in regards to their phone plan. For this analysis I have built two different models that take in different predictors. For the first model I am utilizing the amount of money a customer spends on their plan and whether or not they utilize paperless billing. For the second model I am diving further into how the exact payment method used interacts with the tenure and the monthly amount that a given customer spends. 
+
+
+I made these models because I was genuinely curious to how long a customer stays with a company by the way in which they pay for the service. As we all know, the frequency to which we look at our bills tends to change how long we tend to stick with a service or product for that matter. I was wondering how drastic this was with cell phone plans. 
+
+
+The data I'm using comes from the BAS 320 library and it contains a total of 7032 rows with 20 columns. There are a total of 3 quantitative and 17 categorical columns. 
+
+
+## Task 1 - Investigation of the Relationship Between Tenure, Monthly Charges and the Option of Paperless Billing 
+
+(A requirement for this part is that at least one of the following must be true:  1)  the indicator variable is statistically significant in the model without an interaction or 2) the interaction variable is statistically significant in the model with an interaction.  What you'll write depends on whether the interaction is or is not statistically significant.)
+
+(If the interaction IS statistically significant, write out the full regression equation and the implicit regression equations for both levels.  Write a short paragraph telling us which level has the stronger relationship between Y and X1.  Further, discuss the difference in the average value of Y between levels when X1 is small and when X1 is big.  Does the difference shrink?  Grow?  Flip signs?  Because this requires more writing, you'll get a small bonus if the interaction is statistically significant.)
+
+(If the interaction IS NOT statistically significant, write out the full regression equation and the implicit regression equations for both levels.  Write a short paragraph telling us which level has the higher average value of Y at all values of X1  (and by how much).)
+
+```{r task 1}
+library(regclass)
+M1 = lm(tenure~MonthlyCharges+PaperlessBilling,data=TELCO) #Fit a regression predicting y from x1 (numeric) and x2 (categorical) that EXCLUDES the interaction
+summary(M1)
+visualize_model(M1)
+
+M2 = lm(tenure~MonthlyCharges*PaperlessBilling,data=TELCO) #Fit a regression predicting y from x1 (numeric) and x2 (categorical) that INCLUDES the interaction
+
+summary(M2)
+visualize_model(M2)
+
+```
+
+## Task 2 - Investigation of the relationship between ... (replace with Y) and ... (replace with a numeric X3 and a categorical X4)
+
+(You can use the same numeric predictor X1 from Task 1 if you'd like or a different one.  Your categorical predictor X4 must have between 3 and 12 levels)
+
+(Fit two models, one without an interaction between the two predictors and one with an interaction. Produce a summary and drop1 for both, and include visualize_model for both.)
+
+(A requirement for this part is that at least one of the following must be true:  1)  the categorical predictor is statistically significant in the model without an interaction or 2) the categorical predictor is statistically significant in the model with an interaction.  Check drop1 to determine if this is true or not.  What you'll write depends on whether the interaction is or is not statistically significant.)
+
+(If the interaction IS statistically significant, write out the implicit regression equations for the reference level and for a level of your choice.  Specify the names of these levels in your writeup.   For those two levels, write a short paragraph telling us which level has the stronger relationship between Y and X3.  Further, discuss the difference in the average value of Y between levels when X3 is small and when X3 is big.  Does the difference shrink?  Grow?  Flip signs?)
+
+(THEN, comment on the collection of implicit regression lines from visualize_model.  Do all levels have positive relationships?  Negative?  A mix?  Which is the strongest?  Which is the weakest?  Where is the difference in Y the largest (small X3 or large X3) and which levels are on top/bottom?  Because this requires more writing and thought, you'll get a bonus if the interaction is statistically significant.)
+
+(If the interaction IS NOT statistically significant,  write out the implicit regression equations for the reference level and for a level of your choice.  Specify the names of these levels in your writeup.  Write a short paragraph telling us which of those 2 levels has the higher average value of Y at all values of X3 (and by how much).  Continue this discussion and comment on which level overall has the highest/lowest values of Y at all values of X3.)
+
+```{r Task 2}
+
+M3 <- lm(tenure~MonthlyCharges+PaymentMethod, data=TELCO)  #Fit a regression predicting y from x3 (numeric) and x4 (categorical) that EXCLUDES the interaction
+drop1(M3,test="F")
+visualize_model(M3)
+
+
+M4 <- lm(tenure~MonthlyCharges*PaymentMethod, data=TELCO)  #Fit a regression predicting y from x3 (numeric) and x4 (categorical) that INCLUDES the interaction
+drop1(M4,test="F")
+visualize_model(M4)
+
+```
+
