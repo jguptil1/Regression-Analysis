@@ -1,6 +1,6 @@
 ---
 title: "BAS 320 - Assignment 8 - Categorical Predictors"
-author: "Your name here"
+author: "Jack Guptill"
 output:
   word_document: default
 ---
@@ -8,14 +8,9 @@ output:
 
 ************************************************************************************
 
-[//]:   (Submission notes: a knitted version of the assignment must be uploaded to Canvas before the deadline along with the raw .Rmd.  I recommend knitting to a Word document, adding any desired extra content or formatting, and submitting that or the Word document that has been saved as a PDF.  Late work is not accepted.)
-
-[//]:   (Instructions for Assignment 8:  follow the instructions on Canvas.  This chunk of code is what you can use to read in data files. If you're working with data in  `BAS320datasetsFall23.RData` you can uncomment the line.  Otherwise, you'll want to come up with names for your data frames and add some `read.csv` commands here (illustrated with a few examples in the R chunk below) )
-
 ```{r reading in data for assignment2}
 library(regclass)
 setwd('C:/Users/jackg/OneDrive - University of Tennessee/UTK Fall 23/BAS 320/Homework Files')  #This should output the path to your BAS folder; change with Session, Set Working Directory if not
-
 
 load("BAS320datasetsFall23.RData") 
 
@@ -23,8 +18,8 @@ load("BAS320datasetsFall23.RData")
 # * One numeric Y variable
 # * At least one numeric X1 that is a statistically significant predictor of Y by itself
 
-summary(lm(TotalCharges~tenure,data=TELCO))
-summary(lm(tenure~MonthlyCharges,data=TELCO)) #verifing x3
+summary(lm(tenure~MonthlyCharges,data=TELCO))
+
 # * At least one categorical X2 with 2 levels (you may be able to create this if your data doesn't have it).  Each level needs to have at least 20 individuals in it.
 summary(TELCO$Churn)
 
@@ -32,40 +27,16 @@ summary(TELCO$Churn)
 summary(TELCO$PaymentMethod)
 
 #NOTE 1:  if you have categorical variable you'd like to use but it has "too many" levels, you can use the following lines of code (after adapting it with the name of your columns and dataset and uncommenting it) to get it to a target number of levels.  It basically combines all the least common levels of the categorical variable into a new level called "Combined", leaving with you the desired number of levels.  Run a summary() though to make sure because if there are ties for frequencies, it may leave you with more or fewer than the target!
- 
-#Data Transformation of Parent Education to three levels
-summary(TESTSCORES$ParentEducation)
-  library(regclass)
-  target <- 2
-  threshold <- sort(table(TESTSCORES$ParentEducation),decreasing=TRUE)[target]
-  TESTSCORES$College <- combine_rare_levels(TESTSCORES$ParentEducation,threshold)$values
-  summary(TESTSCORES$College)
 
-
-TESTSCORES$new_ParentEducation = as.factor(TESTSCORES$new_ParentEducation)
-summary(TESTSCORES$new_ParentEducation)
 
 
 #NOTE 2:  you can turn a numeric predictor into a categorical variable by adapting the following code to your data.  It will usually give you the target number of levels, but sometimes fewer if there are a lot of duplicate numerical values.
 
 #You'll get values like [42,70], (72,100], etc. that have groups the numerical values into categories.  If you see a [ or ], that means the interval includes that value.  If you see a ( or ) it means the interval doesn't include that value.  (72,100] mean GREATER than 72 and up to and including 100)
 
-target <- 2
-breaks <- unique( quantile(HIT$duration_ms,seq(from=0,to=1,length=target+1)) )
-HIT$length <- cut(HIT$duration_ms,breaks,include.lowest=TRUE)
-
 ```
 
 ************************************************************************************
-
-The following gives a skeleton/template that you could fill out to narrate your analysis.  You'll need to adapt words throughout to make it specific to your dataset.  Feel free to deviate from the skeleton as long as you're hitting all the required points (see Rubric and detailed list of requirements on Canvas)!  Delete this paragraph (and any prompts provided in other paragraphs) before knitting/submitting.  The document should flow nicely as a professional report.  
-
-Code you should keep:  lm, summary, drop1, visualize_model; basically everything in the R chunks below this
-
-
-Code you should delete after knitting: code reading in the data, combining categories, creating categorical variables from numerical ones if you used it; basically everything in the R chunk above this (and any other code you created that isn't requested)
-
-
 
 ## Analysis of Customer Tenure by Monthly Charges and the Option of Paperless Billing
 
@@ -80,17 +51,15 @@ The data I'm using comes from the BAS 320 library and it contains a total of 703
 
 ## Task 1 - Investigation of the Relationship Between Tenure, Monthly Charges and the Option of Paperless Billing 
 
-(A requirement for this part is that at least one of the following must be true:  1)  the indicator variable is statistically significant in the model without an interaction or 2) the interaction variable is statistically significant in the model with an interaction.  What you'll write depends on whether the interaction is or is not statistically significant.)
-
 For the model that I built both the indicator variable with and without the interaction is statistically significant. Due to it being statistically significant with the the interaction the full regression equation is as follows: 
 
 `Customer Tenure = 22.14035 + .195*MonthlyCharges - 8.45PaperlessBilling + .061*MonthlyCharges*PaperlessBilling`
 
-Implicit Equation for Cellphone Coverages that don't include Paperless Billing:
+Implicit Equation for Customer Tenure that don't include Paperless Billing (No Level):
 
 `Customer Tenure = 22.14035 + .195*MonthlyCharges`
 
-Implicit Equation for Cellphone Coverages that do include Paperless Billing: 
+Implicit Equation for Cellphone Tenure that do include Paperless Billing (Yes Level): 
 
 `Customer Tenure = 13.690 + .256*MonthlyCharges`
 
@@ -98,12 +67,13 @@ Customers that have paperless billing have a stronger relationship between their
 
 
 ```{r task 1}
-#summary(TELCO$tenure) #32.42 as the mean of Tenure
 
-library(regclass)
 M1 = lm(tenure~MonthlyCharges+PaperlessBilling,data=TELCO) #Fit a regression predicting y from x1 (numeric) and x2 (categorical) that EXCLUDES the interaction
+
 summary(M1)
+drop1(M1,test="F")
 visualize_model(M1)
+#summary(TELCO$tenure) #32.42 as the mean of Tenure
 
 M2 = lm(tenure~MonthlyCharges*PaperlessBilling,data=TELCO) #Fit a regression predicting y from x1 (numeric) and x2 (categorical) that INCLUDES the interaction
 
@@ -112,7 +82,7 @@ visualize_model(M2)
 
 ```
 
-## Task 2 - Investigation of the relationship between ... (replace with Y) and ... (replace with a numeric X3 and a categorical X4)
+## Task 2 - Investigation of the relationship between Customer Tenure by Monthly Charges and Payment Type
 
 (You can use the same numeric predictor X1 from Task 1 if you'd like or a different one.  Your categorical predictor X4 must have between 3 and 12 levels)
 
@@ -120,11 +90,33 @@ visualize_model(M2)
 
 (A requirement for this part is that at least one of the following must be true:  1)  the categorical predictor is statistically significant in the model without an interaction or 2) the categorical predictor is statistically significant in the model with an interaction.  Check drop1 to determine if this is true or not.  What you'll write depends on whether the interaction is or is not statistically significant.)
 
-(If the interaction IS statistically significant, write out the implicit regression equations for the reference level and for a level of your choice.  Specify the names of these levels in your writeup.   For those two levels, write a short paragraph telling us which level has the stronger relationship between Y and X3.  Further, discuss the difference in the average value of Y between levels when X3 is small and when X3 is big.  Does the difference shrink?  Grow?  Flip signs?)
+For both models, including and not including the interaction of the payment type, the variable is statistically significant. 
 
-(THEN, comment on the collection of implicit regression lines from visualize_model.  Do all levels have positive relationships?  Negative?  A mix?  Which is the strongest?  Which is the weakest?  Where is the difference in Y the largest (small X3 or large X3) and which levels are on top/bottom?  Because this requires more writing and thought, you'll get a bonus if the interaction is statistically significant.)
+For the model that includes the interaction, the overall equation is as follows: 
 
-(If the interaction IS NOT statistically significant,  write out the implicit regression equations for the reference level and for a level of your choice.  Specify the names of these levels in your writeup.  Write a short paragraph telling us which of those 2 levels has the higher average value of Y at all values of X3 (and by how much).  Continue this discussion and comment on which level overall has the highest/lowest values of Y at all values of X3.)
+`Customer Tenure = 33.400 + .153*MonthlyCharges - 3.598*PaymentMethodCreditCard - 30.636*PaymentMethodElectronicCheck - 17.206*PaymentMethodMailedCheck + .049*MonthlyCharges*PaymentMethodCreditCard + .140*MonthlyCharges*PaymentMethodElectronicCheck - .023*MonthlyCharges*PaymentMethodMailedCheck`
+
+The equation for the reference level: 
+
+`Customer Tenure = 33.400 + .153*MonthlyCharges`
+
+The implicit equation for Electronic Check: 
+
+`Customer Tenure = 2.764 + .293*MonthlyCharges`
+
+The implicit equation for Mailed Check: 
+
+`Customer Tenure = 16.194 + .130*MonthlyCharges`
+
+The implicit equation for Credit Card: 
+
+`Customer Tenure = 29.802 + .202*MonthlyCharges`
+
+For the sake of this Analysis I would like to split the four levels of payment types into group A and group B. Group A consists of those that pay by bank transfer and credit cards Automatically. Group B consists of mailed check and electronic check. In general those that are in Group A tend to stay with their phone plan for longer than those in group B. This might be due to the convenience factor of their payment method. If we inspect group A more closely, it seems that at low levels of monthly payment, those that use bank transfers tend to stay with their phone plan longer. However, at large monthly rates, this flips where those that utilize automatic credit credit card payments tend to have a longer tenure. If we look at group B we see a similar relationship with e-checks and mailed in checks. At low levels of monthly charges, those that utilize mailed in checks, tend to have a longer tenure. However, when a customer has a large monthly payment, those that electronic checks tend to have a longer tenure. 
+
+From this we can assume that convenience of method of payment has a drastic change in how long the customer tends to stay on their phone plan. Where automatic type payment, such as Group A, in general tend to stay with their phone plan longer than manual methods such as Group B. We can confirm this, by looking at the various strengths of relationships. Automatic credit card payments have a stronger relationship then does automatic bank transfers. Electronic Check has a much stronger relationship than does the more inconvenient method of the mail in check. 
+
+What is interesting from the output is that the difference in average tenure tends to shrink in larger amounts of monthly payment between the electronic check and the bank transfer method. For further analysis I would like to explore how often they check their banking statements and what type of visibility they might have over their banking accounts. Do they get their statements in the mail once a month? Can they go on an app at anypoint to see? This might also have drastic effects on how they view their cell phone plan as well. 
 
 ```{r Task 2}
 
@@ -136,6 +128,7 @@ visualize_model(M3)
 M4 <- lm(tenure~MonthlyCharges*PaymentMethod, data=TELCO)  #Fit a regression predicting y from x3 (numeric) and x4 (categorical) that INCLUDES the interaction
 drop1(M4,test="F")
 visualize_model(M4)
+summary(M4)
 
 ```
 
