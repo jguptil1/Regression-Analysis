@@ -1,0 +1,195 @@
+---
+title: "BAS 320 - Assignment 9 - Logistic Regression"
+author: "Your name here"
+output:
+  word_document: default
+---
+
+************************************************************************************
+
+[//]:   (Submission notes: a knitted version of the assignment must be uploaded to Canvas before the deadline along with the raw .Rmd.  I recommend knitting to a Word document, adding any desired extra content or formatting, and submitting that or the Word document that has been saved as a PDF.  Late work is not accepted.)
+
+[//]:   (Instructions for Assignment 9:  follow the instructions on Canvas.  This chunk of code is what you can use to read in data files. If you're working with data in  `BAS320datasetsYCategoricalFall23.RData` you can uncomment the line.  Otherwise, you'll want to come up with names for your data frames and add some `read.csv` commands here (illustrated with a few examples in the R chunk below) )
+
+```{r Data Wrangling}
+library(regclass)
+getwd()  #This should output the path to your BAS folder; change with Session, Set Working Directory if not
+library(regclass)
+#Either use the new .RData file for this assignment or find your own dataset!
+#load("BAS320datasetsYCategoricalFall23.RData")
+DATA <- read.csv("C:/Users/jackg/OneDrive - University of Tennessee/UTK Fall 23/BAS 320/Homework Files/Assignment 9/TravelInsurancePrediction.csv",stringsAsFactors=TRUE)
+DATA = DATA[,2:10]
+
+# Transform TravelInsurance column as a  factor
+DATA$TravelInsurance = ifelse(DATA$TravelInsurance == 1, 'yes', 'no')
+DATA$TravelInsurance = as.factor(DATA$TravelInsurance)
+DATA$ChronicDiseases = as.factor(DATA$ChronicDiseases)
+
+
+#Remember that whatever data you choose needs have:
+# * One categorical Y variable with 2 levels (you may be able to create this if your data doesn't have it).
+# * At least two numeric X's that are statistically significant predictors of Y by itself
+# * At least one categorical X with 2 (you may be able to create this if your data doesn't have it).  Each level needs to have at least 20 individuals in it.
+# * At least one categorical X with between 3-12 levels (you may be able to create this if your data doesn't have it).  Each level needs to have at least 20 individuals in it.
+
+
+#Exploring the dataset to see how I will comply with the last requirement
+summary(DATA$Employment.Type) #seeing what the two levels are
+summary(DATA$FamilyMembers) #seeing what buckets could be created for FamilyMember
+
+#Creation of the three buckets
+target <- 3
+breaks <- unique( quantile(DATA$FamilyMembers,seq(from=0,to=1,length=target+1)) )
+DATA$FamilyMemberCat <- cut(DATA$FamilyMembers,breaks,include.lowest=TRUE)
+
+summary(DATA$FamilyMemberCat) #complies with the third rule
+
+#NOTE 0:  
+# * If you use the MOVIEDATA, make sure you are NOT predicting Outcome from Outcome2 or Outcome3, etc.  Once you've selected your Y variable, NULL out the the other 2 possible Outcome columns)
+# * If you use the BEER data, make sure you define a Y variable with level High and Low for just one of the review score, then NULL OUT the other review scores.
+
+
+#NOTE 1:  if you have a numeric Y that you'd like to convert into a two-level categorical Y (e.g. High vs. Low), you can uncomment and adapt the following lines of code. The code below basically converts values into "High" or "Low" depending on if the number is greater than 3 or not.  You'll have to change data frame names, column names, and the "3" into whatever you feel is appropriate.  If you do this, ensure that the equivalent of mean(DATA$newY=="High") is between 0.20 and 0.80; if not try changing the numeric cutoff into something else
+
+# DATA$newY <- factor( ifelse( DATA$numericalx > 3, "High","Low") )
+# mean(DATA$newY=="High")
+
+
+#NOTE 2:  if you have categorical variable you'd like to use but it has "too many" levels, you can uncomment the following lines of code (after adapting it with the name of your columns and dataset and uncommenting it) to get it to a target number of levels.  It basically combines all the least common levels of the categorical variable into a new level called "Combined", leaving with you the desired number of levels.  Run a summary() though to make sure because if there are ties for frequencies, it may leave you with more or fewer than the target!
+
+
+#target <- 3
+#threshold <- sort(table(DATA$categoricalvariable),decreasing=TRUE)[target]
+#DATA$newcatvariable <- combine_rare_levels(DATA$categoricalvariable,threshold)$values
+
+
+
+#NOTE 3:  you can turn a numeric predictor into a categorical variable by uncommenting and adapting the following code to your data.  It will usually give you the target number of levels, but sometimes fewer if there are a lot of duplicate numerical values.
+
+#You'll get values like [42,70], (72,100], etc. that have groups the numerical values into categories.  If you see a [ or ], that means the interval includes that value.  If you see a ( or ) it means the interval doesn't include that value.  (72,100] mean GREATER than 72 and up to and including 100)
+
+
+
+```
+
+************************************************************************************
+
+Code you should keep:  glm(), summary(), drop1(), visualize_model(), predict(), confusion_matrix(), table(), check_regression(); basically everything not in the 1st R chunk
+
+Code you should delete after knitting: code reading in the data, combining categories, creating categorical variables from numerical ones if you used it; basically everything in the R chunk above this (and any other code you created that isn't requested)
+
+
+
+## Analysis of ... (replace the ... with what you're analyzing)
+
+I'm using a logistic regression model to predict the probability that ... (specify your Y variable in plain English and the level that your model is predicting, don't necessarily use the column name in the data) from ... (describe the X variables you're using in plain English)
+
+I'm making this model because ... (tell us why you've chosen this relationship to investigate; could be out of curiosity, or maybe being able to make this prediction would hold value to a business...).  
+
+The data I'm using comes from ... (if kaggle, tell us the URL; if the BAS320datasetsYCategoricalFall23.RData  file you can just tell us that) and contains a total of ... rows and ... total predictors (always important to tell us how much data).
+
+
+## Task 1 - Investigation of the relationship between the probability of ... (replace with what you're studying) and ... (replace with a numeric X)
+
+(In this section, investigate a simple logistic regression model predicting the probability of the "level of interest" in your Y variable from a numeric predictor, let's call it X for the purpose of this guide.  Produce a summary and include visualize_model for your model.  The predictor MUST be statistically significant)
+
+(Write a short sentence that talks about whether individuals with larger values of X have a larger or smaller probability that individuals with smaller values of X.  Write a short sentence that tells us the value of X where there's a 50% chance of observing the level of interest.  If this value of X is far outside the range of X used to the build the model, that would be extrapolating, and make a note that this statement is a "guess" at best because of that)
+
+
+
+```{r Task 1}
+M.task1 <- glm(TravelInsurance~AnnualIncome, data=DATA, family=binomial) #Fit a simple logistic regression predicting Y from X (numeric)
+summary(M.task1)
+visualize_model(M.task1);abline(v=3.013/.000002478)
+
+#You'll also need one calculation here that gets the value of X that has a 50% chance of having the level of interest
+3.013/.000002478 #1215900
+
+```
+
+## Task 2 - Investigation of the relationship between the probability of ... (replace with what you're studying) and ... (replace with a numeric X1 and categorical X2)
+
+(In this section, investigate a multiple logistic regression model predicting the probability of the "level of interest" in your Y variable from a numeric predictor, let's call it X1 for the purpose of this guide, and a two level categorical predictor, let's call it X2 for the purpose of this guide.  Fit a model with and without the interaction.  Produce a summary and include visualize_model for both models)
+
+(A requirement for this part is that  1)  the indicator variable is statistically significant in the model without an interaction AND 2) the interaction variable is statistically significant in the model with an interaction.)
+
+(Write a sentence that comments about the model without the interaction:  which level has the higher probability of the level of interest?  Sidenote:  you should know how to tell which level has the higher probability both from looking at the plot and also the output of visualize model, but for this assignment it's fine looking at the plot and answering this)
+
+From looking at the output we can tell that travelers that are frequent flyers have a higher probability of flying that those that are not frequent flyers. 
+
+(Write a few sentences that comments about the model with the interaction:  Which level has stronger relationship between the probability and X1?  Does one level always have a higher probability than the other over the range of X1 in the data, or at small values of X1 does one level higher probability while at large values of X1 the other level has the higher probability.  Narrate what you see!)
+
+Travelers that are frequent flyers have a stronger relationship between the probability of getting insurance and  annual income. Over the range of annual incomes that we see in the data, the probability of those that are not frequent flyers that make less than approximately 800K in annual income is higher than those that are frequent flyers. This flips however, with those that make ~$800K. In other words, those that make above ~800K and are frequent fliers are much more likely to buy travelers insurance. 
+
+(Also make two predictions using the model with the interaction:  one prediction when X1 is its 25th percentile, which you can get for summary, for the level of X2 that comes first alphabetically, and another prediction when X1 is its 75 percentile for the level of X2 that comes last alphabetically.  You'll have to set up the `TO.PREDICT` dataframe and run your model through `predict` with additional argument `type="response"`)
+
+```{r Task 2}
+M.task2.noint <- glm(TravelInsurance~FrequentFlyer+AnnualIncome, data=DATA, family=binomial)  #Fit a regression predicting Y from X1 (numeric) and X2 (categorical) that EXCLUDES the interaction
+summary(M.task2.noint )
+visualize_model(M.task2.noint )
+
+M.task2.int  <- glm(TravelInsurance~FrequentFlyer*AnnualIncome, data=DATA, family=binomial)  #Fit a regression predicting Y from X1 (numeric) and X2 (categorical) that INCLUDES the interaction
+summary(M.task2.int )
+visualize_model(M.task2.int )
+
+
+summary(DATA$AnnualIncome) # 25th percentile: 600K, 75th percentile: 1,250K
+summary(DATA$FrequentFlyer) # No, Yes
+
+TO.PREDICT <- data.frame(
+  AnnualIncome = c(600000,1250000),
+  FrequentFlyer=c('No','Yes')
+)  #Construct the dataframe where you're making predictions;  2 rows
+predict(M.task2.int,newdata=TO.PREDICT,type="response")
+
+```
+
+
+## Task 3 - Investigation of the relationship between ... (replace with Y) and all predictors (full model)
+
+(In this section, investigate a multiple logistic regression model predicting your Y variable from all columns in the data using the "twiddle dot" shortcut; no interactions.  Ensure all your predictors are either numeric or factors with 2-12 levels, otherwise R can crash.  You can always `DATA$badcolumn <- NULL` to get rid of a bad column.  Include the result of running `summary` and `drop1`)
+
+(Write a paragraph describing the relationship between the probability of the level of interest and one of the numeric predictors that is statistically significant,.  Fully interpret the coefficient, at least its sign.  Remember this is referring to "otherwise identical individuals", and we want you to be as specific as possible as to what this means here.  Also briefly discuss what it means that this predictor is statistically significant)
+
+Two travelers that are otherwise identical in their employment type, whether they graduated or not, their age, the amount of family members they have, if they have chronic diseases, if they are a frequent flyer or not, if they have ever traveled abroad that differ in annual income, the traveler that has a higher annual income has a higher probability of buying travelers insurance. With this variable being statistically significant we now know that a travelers annual income brings additional information to the model in understanding the probability of them buying travelers insurance above and beyond what the information that the other variables bring into the model. 
+
+(Write a paragraph describing the relationship between the probability of the level of interest and one of the two-level categorical predictors that is statistically significant.  Among "otherwise identical individuals", and you don't need to go into detail what this means for this paragraph since you did that in the last one, which level has the higher probability of the event of interest?)
+
+Among other wise identical travelers, those that either work in the private sector or are self employed have a higher probability of buying travelers insurance then does those that are working in the government sector. 
+
+(Write a paragraph describing the relationship between the probability of the level of interest and one of the 3-12-level categorical predictors that is statistically significant.  Justify how you know it is a statistically significant predictor (i.e., what part of the output are you looking at.   Among "otherwise identical individuals", and you don't need to go into detail what this means for this paragraph since you did that in the last one, which level has the highest probability of the event of interest?)
+
+Among otherwise identical travelers, the traveler that has a family size of 6 or greater (5 exclusive and above in the output) has the highest probability of getting travelers insurance. Those that have a family size of 5 have a lower probability of getting travelers insurance than those that have a family size of 2-4. For this analysis we are using the drop 1 method in seeing if the variable, family size, is statistically significant if it is taken out of the model. Given that family size is statistically signifant when taken out of the model, we know that adding it into the model brings in additional new information that other variables cannot bring in by themselves. 
+
+```{r Task 3}
+DATA$FamilyMembers <- NULL
+DATA$AgeCat = NULL
+summary(DATA$FamilyMemberCat)
+M.full <- glm(TravelInsurance~.,data=DATA, family=binomial) #Fit a regression predicting Y from everything
+summary(M.full)
+drop1(M.full, test="Chisq") #reference level is [2,4] or 2 to 4 family members
+```
+
+## Task 4 - Assessing the full model
+
+(Include the results of running `confusion_matrix` and `check_regression` for the full model with no interaction from Task 3 and the full model with interactions for this model)
+
+The naive models accuracy is 64% by using the majority level. The first model that doesn't include interactions has an accuracy of 77.52% and the model that does include interactions has an accuracy of 81.25%. This second model with the interactions has the highest overall accuracy. 
+
+In terms of our full model that doesn't include all interactions between all of the variables, it is not a reasonable reflection of reality as the model does not pass both goodness of fit tests. This model might still be good to be making predictions, however the sigmoidal curve doesn't seem to be a good representation of the probability of determining if someone is going to buy travelers insurance. 
+
+With regards to the second model that does include all two way interactions, it does seem to somewhat okay in terms of being a reasonable reflection of reality as it does barely pass the first test but it fails the second. Again this model still might be good to make predictions and still might be somewhat useful. 
+
+```{r Task 4}
+M.full2 <- glm(TravelInsurance~.^2, data=DATA, family=binomial)  #Fit a regression predicting Y from all predictors and all interactions
+
+confusion_matrix(M.full) #77.52% accuracy
+confusion_matrix(M.full2) #81.25% accuracy
+
+table(DATA$TravelInsurance)  #You need a frequency table of the column containing Y and a calculation of the naive model's accuracy
+1277/(1277+710) #64% naive accuracy
+
+check_regression(M.full)
+check_regression(M.full2)
+```
+
