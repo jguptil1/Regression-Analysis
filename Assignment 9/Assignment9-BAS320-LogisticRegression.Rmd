@@ -1,6 +1,6 @@
 ---
 title: "BAS 320 - Assignment 9 - Logistic Regression"
-author: "Your name here"
+author: "Jack Guptill"
 output:
   word_document: default
 ---
