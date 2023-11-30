@@ -43,6 +43,7 @@ breaks <- unique( quantile(DATA$FamilyMembers,seq(from=0,to=1,length=target+1)) 
 DATA$FamilyMemberCat <- cut(DATA$FamilyMembers,breaks,include.lowest=TRUE)
 
 summary(DATA$FamilyMemberCat) #complies with the third rule
+#plot(DATA$AnnualIncome)
 
 #NOTE 0:  
 # * If you use the MOVIEDATA, make sure you are NOT predicting Outcome from Outcome2 or Outcome3, etc.  Once you've selected your Y variable, NULL out the the other 2 possible Outcome columns)
@@ -80,20 +81,21 @@ Code you should delete after knitting: code reading in the data, combining categ
 
 
 
-## Analysis of ... (replace the ... with what you're analyzing)
-
-I'm using a logistic regression model to predict the probability that ... (specify your Y variable in plain English and the level that your model is predicting, don't necessarily use the column name in the data) from ... (describe the X variables you're using in plain English)
-
-I'm making this model because ... (tell us why you've chosen this relationship to investigate; could be out of curiosity, or maybe being able to make this prediction would hold value to a business...).  
-
-The data I'm using comes from ... (if kaggle, tell us the URL; if the BAS320datasetsYCategoricalFall23.RData  file you can just tell us that) and contains a total of ... rows and ... total predictors (always important to tell us how much data).
+## Analysis of the Probability of Travelers Buying Travelers Insurance based on various Predictor Variables
 
 
-## Task 1 - Investigation of the relationship between the probability of ... (replace with what you're studying) and ... (replace with a numeric X)
+I'm using a logistic regression model to predict the probability that an individual buys travelers insurance (Yes level) from what the travelers age is, whether they graduated whether they are employed by the government or if they work in the private sector/self-employed (combined level), what their annual income is, whether or not they have a chronic disease, if they are a frequent flyer, if they have ever traveled abroad, and if they have 2-4, 5, or 6-9 family members. 
+
+I'm making this model because I am genuinely interested in the underwriting and risk analysis of insurance companies and I thought that this would be a good introduction to the data that insurance companies use to analyze policy holders. I am curious to what sorts of people buy travelers insurance in general.   
+
+The data I'm using comes from Kaggle (https://www.kaggle.com/datasets/tejashvi14/travel-insurance-prediction-data) and contains a total of 1987 rows and 8 total predictors and 1 target variable.
+
+
+## Task 1 - Investigation of the relationship between the probability of a Traveler buying Travelers Insurance and and their Annual Income
 
 (In this section, investigate a simple logistic regression model predicting the probability of the "level of interest" in your Y variable from a numeric predictor, let's call it X for the purpose of this guide.  Produce a summary and include visualize_model for your model.  The predictor MUST be statistically significant)
 
-(Write a short sentence that talks about whether individuals with larger values of X have a larger or smaller probability that individuals with smaller values of X.  Write a short sentence that tells us the value of X where there's a 50% chance of observing the level of interest.  If this value of X is far outside the range of X used to the build the model, that would be extrapolating, and make a note that this statement is a "guess" at best because of that)
+Those that have a higher annual income have a larger probability of buying travelers income. Conversely, those that make less per year have a lower probability of buying travelers insurance. The 50/50 break point for this data set is with those that make $1,215,900. In other words, for those that make around $1.2 million per year have a 50/50 chance of buying travelers insurance. 
 
 
 
@@ -107,7 +109,7 @@ visualize_model(M.task1);abline(v=3.013/.000002478)
 
 ```
 
-## Task 2 - Investigation of the relationship between the probability of ... (replace with what you're studying) and ... (replace with a numeric X1 and categorical X2)
+## Task 2 - Investigation of the Relationship Between the Probability of Travelers Buying Travelers Insurance by whether they are Frequent Flyers and what their Annual Income is
 
 (In this section, investigate a multiple logistic regression model predicting the probability of the "level of interest" in your Y variable from a numeric predictor, let's call it X1 for the purpose of this guide, and a two level categorical predictor, let's call it X2 for the purpose of this guide.  Fit a model with and without the interaction.  Produce a summary and include visualize_model for both models)
 
@@ -145,7 +147,7 @@ predict(M.task2.int,newdata=TO.PREDICT,type="response")
 ```
 
 
-## Task 3 - Investigation of the relationship between ... (replace with Y) and all predictors (full model)
+## Task 3 - Investigation of the relationship between Travelers buying Travelers Insurance and all Predictor Variables in the Dataset (Full Model)
 
 (In this section, investigate a multiple logistic regression model predicting your Y variable from all columns in the data using the "twiddle dot" shortcut; no interactions.  Ensure all your predictors are either numeric or factors with 2-12 levels, otherwise R can crash.  You can always `DATA$badcolumn <- NULL` to get rid of a bad column.  Include the result of running `summary` and `drop1`)
 
