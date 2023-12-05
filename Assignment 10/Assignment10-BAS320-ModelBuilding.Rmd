@@ -1,0 +1,170 @@
+---
+title: "BAS 320 - Assignment 10 - Model Building"
+author: "Jack Guptill"
+output:
+  word_document: default
+---
+
+************************************************************************************
+
+[//]:   (Submission notes: a knitted version of the assignment must be uploaded to Canvas before the deadline along with the raw .Rmd.  I recommend knitting to a Word document, adding any desired extra content or formatting, and submitting that or the Word document that has been saved as a PDF.  Late work is not accepted.)
+
+[//]:   (Instructions for Assignment 10:  follow the instructions on Canvas.  This chunk of code is what you can use to read in data files. If you're working with data in `BAS320datasetsFall23.RData` and `BAS320datasetsYCategoricalFall23.RData` you can uncomment the line.  Otherwise, you'll want to come up with names for your data frames and add some `read.csv` commands here (illustrated with a few examples in the R chunk below).  Many lines of code in the examples will need to be uncommented and run for it to knit properly )
+
+```{r Data Wrangling}
+library(regclass)
+getwd()  #This should output the path to your BAS folder; change with Session, Set Working Directory if not
+
+#Either use the new .RData file for this assignment or find your own dataset!
+load("BAS320datasetsFall23.RData") 
+load("BAS320datasetsYCategoricalFall23.RData")
+GAReg <- read.csv("GamesAttendanceReg.csv",stringsAsFactors=TRUE) #Data for Regression Model
+GSLog = read.csv('GamesStandingsLog.csv', stringsAsFactors=TRUE) #Data for Logistic Model
+
+#Dataset requirements:
+
+# Set 1:  Y is categorical (2 levels; you may be able to create this if your data doesn't have it)
+# * between 4-20 X's (NULL out columns to get down to 20 if necessary)
+# * any categorical predictors should be between 2-12ish levels (you can combine some to get it down that low if needed)
+# * between 300-1000 rows (you'll be able to take a random sample to get it down to 1000 rows if necessary)
+
+# Set 2:  Y is numeric
+# * between 4-20 X's (NULL out columns to get down to 20 if necessary)
+# * any categorical predictors should be between 2-12ish levels (you can combine some to get it down that low if needed)
+# * between 300-1000 rows (you'll be able to take a random sample to get it down to 1000 rows if necessary)
+
+
+
+# WRANGLING STEP 1
+# NULL out predictors that you don't want to use (meaningless columns, identifier
+# variables, columns with a lot of missing values, redundant columns, etc.)
+# Aim for between 4-20 predictors!
+
+
+#Set 1 Transformations
+#summary(GALog)
+GSLog$week =  as.integer(GSLog$week)
+GSLog$tie= as.factor(GSLog$tie)
+
+GSLog$year_y <- NULL
+
+
+
+#WRANGLING STEP 2:  if you have a categorical variable you'd like to use but it has "too many" levels, you can uncomment the following lines of code (after adapting it with the name of your columns and dataset and uncommenting it) to get it to a target number of levels.  It basically combines all the least common levels of the categorical variable into a new level called "Combined", leaving with you the desired number of levels.  Run a summary() though to make sure because if there are ties for frequencies, it may leave you with more or fewer than the target!
+
+#target <- 3
+#threshold <- sort(table(DATA$categoricalvariable),decreasing=TRUE)[target]
+#DATA$newcatvariable <- combine_rare_levels(DATA$categoricalvariable,threshold)$values
+#summary(DATA$newcatvariable)
+#If your levels have spaces, dashes, or any other characters, go ahead and rename them
+#levels(DATA$newcatvariable) <-  paste("Level",1:nlevels(DATA$newcatvariable),sep="")
+
+
+
+#WRANGLING STEP 3:  Your dataset may have missing values.  It's a good idea to exclude these for this analysis (though there are much better ways to handle them).  Adapt the following code to your data.
+# summary(DATA)  #check for NAs
+# DATA <- droplevels(DATA[complete.cases(DATA),])
+
+
+
+#WRANGLING STEP 4:  If your dataset is much bigger than 1000 rows, you can take a random sample of them; adapt the code to your dataframe to reduce it to 1000 rows (or smaller if you want)
+
+# SMALLDATA <- DATA[ sample(1:nrow(DATA),size=1000), ]
+
+
+
+#WRANGLING STEP 5: 
+#If you have a numeric Y that you'd like to convert into a two-level categorical Y (e.g. High vs. Low), you can uncomment and adapt the following lines of code. The code below basically converts values into "High" or "Low" depending on if the number is greater than 3 or not.  You'll have to change data frame names, column names, and the "3" into whatever you feel is appropriate.  If you do this, ensure that the equivalent of mean(DATA$newY=="High") is between 0.20 and 0.80; if not try changing the numeric cutoff into something else
+
+# DATA$newY <- factor( ifelse( DATA$numericalx > 3, "High","Low") )
+# mean(DATA$newY=="High")
+# DATA$numericalx <- NULL  #Delete the variable that categories came from
+
+
+
+
+#WRANGLING STEP 6:  
+# * If you use the MOVIEDATA in BAS320datasetsYCategoricalFall23.RData, make sure you are NOT predicting Outcome from Outcome2 or Outcome3, etc.  Once you've selected your Y variable, NULL out the the other 2 possible Outcome columns)
+# * If you use the BEER data in BAS320datasetsYCategoricalFall23.RData, make sure you define a Y variable with levels High and Low for just one of the review scores, then NULL OUT the other review scores.
+
+
+#WRANGLING STEP 7:  
+#Run summary() on your data to make sure you don't have any missing values and that
+#all categorical predictors have between 2-12ish levels.  You might be combining some
+#levels later on.
+
+
+```
+
+************************************************************************************
+
+The following gives a skeleton/template that you could fill out to narrate your analysis.  You'll need to adapt words throughout to make it specific to your dataset.  Feel free to deviate from the skeleton as long as you're hitting all the required points (see Rubric and detailed list of requirements on Canvas)!  Delete this paragraph (and any prompts provided in other paragraphs) before knitting/submitting.  The document should flow nicely as a professional report.  
+
+Code you should keep:  output of `build_model` (remember to add `prompt=FALSE` once you're happy with it before knitting), output of `BM$CVtable` (assuming `build_model` was left-arrowed into an object named BM), contents of `S` (object created by `step` with `trace=0`).
+
+Code you should delete after knitting: code reading in the data, nulling out columns, taking subsets, combining categories, creating categorical variables from numerical ones if you used it; basically everything in the R chunk above this where you do data wrangling (and any other code you created that isn't requested).
+
+
+## Part 1:  Descriptive model for ... (replace the ... with what you're analyzing)
+
+I'm using logistic regression to predict ... (specify your Y variable in plain English; you're predicting the probability of one of the levels, which one?) from ... (describe the X variables you're using in plain English)
+
+I'm making this model because ... (tell us why you've chosen this relationship to investigate; could be out of curiosity, or maybe being able to make this prediction would hold value to a business...).  
+
+The data I'm using comes from ... (if kaggle, tell us the URL; if an .RData  file, you can just tell us that) and contains a total of ... rows and ... total predictors (always important to tell us how much data).
+
+(In this section, search for the "best" descriptive model based on AIC criteria.  You'll use `step` to search.  If possible, consider all two-way interactions ~.^2, but this may result in too many models in which case ~. is ok.  If necessary, you can include specific a particular set of predictors if you need to like `y~x1+x2+x4`, or include all two way interactions between them with `y~(x1+x2+x4)^2`. Start your search with the naive model.)
+
+(Write a short sentence that talks about what predictors end up in the selected model.)
+
+```{r Part 1,warning=FALSE}
+#Adapt the step code to your data; if ~.^2 doesn't work, try ~. instead or try to NULL out some predictors you don't find interesting.
+
+#naive <- glm(y~1,data=DATA,family=binomial) 
+#full <- glm(y~.^2,data=DATA,family=binomial) 
+
+#You can ignore warnings(), which most likely will be about fitted probabilities numerically 0 or 1 occurred
+
+
+#BEFORE KNITTING because you don't want this output in the document
+#S <- step(naive,scope=list(lower=naive,upper=full),direction="both",trace=1)
+#Have this step() command be knitted in your document instead
+#S <- step(naive,scope=list(lower=naive,upper=full),direction="both",trace=0)
+#S
+
+```
+
+## Part 2:  Predictive model for ... (replace the ... with what you're analyzing)
+
+I'm using linear regression to predict ... (specify your Y variable in plain English) from ... (describe the X variables you're using in plain English)
+
+I'm making this model because ... (tell us why you've chosen this relationship to investigate; could be out of curiosity, or maybe being able to make this prediction would hold value to a business...).  
+
+The data I'm using comes from ... (if kaggle, tell us the URL; if an .RData  file, you can just tell us that) and contains a total of ... rows and ... total predictors (always important to tell us how much data).
+
+(In this section, search for the "best" predictive model based on lowest estimated generalization error from K-fold cross-validation.  You must use `build_model` with `type="predictive"`. If possible, consider all two-way interactions ~.^2 in `build_model`, but this may result in too many models in which case ~. is ok.  If necessary, you can specific a particular set of predictors if you need to like `y~x1+x2+x4`, or include all two way interactions between them with `y~(x1+x2+x4)^2`.   This way you can run it once without interactions, find what variables appear to be "best", then go back and consider all two-way interactions between them. You may need to NULL out some predictors or combine levels of categorical variables to get this to work)
+
+(Write a short sentence that talks about what predictors end up in the selected model.  Also discuss the expected/estimated generalization error of the model from K-fold cross-validation.  Finally, comment on whether the model "generalizes well" or is "overfit"; it generalizes well if the error on the holdout is no more than 10% larger than the estimated error from K-fold cross-validation.  For example, if the estimated generalization error is 143 and actual error on the holdout is 156, then 156/143= 1.09 so the error is only 9% larger; good!  If the estimated generalization error is 230 and the actual error on the holdout is 300, the error is 300/230 = 1.30 so the error is 30% larger; not good! )
+
+```{r Part 2, warning=FALSE}
+#Create your training data and holdout data (adapt this code to your data and needs)
+#If you have 700+ rows, have your training set be 500 rows and keep size=500
+#Otherwise, have size=0.7*nrow(DATA)
+# set.seed(320); train.rows <- sample(1:nrow(DATA),size=500)
+#TRAIN <- DATA[train.rows,]
+#HOLDOUT <- DATA[-train.rows,]
+
+
+#Adapt the build_model code to your data
+#Be wary if you have to fit more than 1.1e+6 models or so
+#You might need to ~. instead of ~.^2 if you have too many variables
+#Or, you can also specify to build with a particular set of predictors
+#like y~x1+x2+x4 or with interactions y~(x1+x2+x4)^2
+
+#BM <- build_model(y~.^2,data=TRAIN,type="predictive",seed=320,holdout=HOLDOUT)
+#BM$CVtable
+
+#NOTE:  once you're happy with your build_model command you MUST add prompt=FALSE as an additional argument for it to knit!
+```
+
+
