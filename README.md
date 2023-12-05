@@ -8,3 +8,6 @@ Assignment 6 - Multiple Linear Regression (College Football) <br>
 Assignment 7 - Polynomial Model with Interactions (Beer) <br>
 Assignment 8 - Multiple Linear Regression with Categorical Predictors (Cell Phone Bills)
 Assignment 9 - Multiple Logistic Regression (Buying Travel Insurance Predicitions)
+Assignment 10 - Model Selection and Development - Final Course Assignment (Football Attendance and Standings predictions using multiple regression and logistic regression Modeling)
+
+Assignment 10's datasets utilized my data transformations. See the portfolio project repo for more information. 
