@@ -16,8 +16,8 @@ library(regclass)
 getwd()  #This should output the path to your BAS folder; change with Session, Set Working Directory if not
 
 #Either use the new .RData file for this assignment or find your own dataset!
-load("BAS320datasetsFall23.RData") 
-load("BAS320datasetsYCategoricalFall23.RData")
+#load("BAS320datasetsFall23.RData") 
+#load("BAS320datasetsYCategoricalFall23.RData")
 GAReg <- read.csv("GamesAttendanceReg.csv",stringsAsFactors=TRUE) #Data for Regression Model
 GSLog = read.csv('GamesStandingsLog.csv', stringsAsFactors=TRUE) #Data for Logistic Model
 
@@ -43,10 +43,30 @@ GSLog = read.csv('GamesStandingsLog.csv', stringsAsFactors=TRUE) #Data for Logis
 
 #Set 1 Transformations
 #summary(GALog)
+GSLog = GSLog[GSLog$week %in% c(1:17),]
+GSLog$week = as.integer(GSLog$week)
 GSLog$week =  as.integer(GSLog$week)
 GSLog$tie= as.factor(GSLog$tie)
-
 GSLog$year_y <- NULL
+GSLog$simple_rating <- NULL
+GSLog$tie <- NULL
+GSLog$winner <- NULL
+GSLog$margin_of_victory <- NULL
+GSLog$points_differential <- NULL
+GSLog$wins <-NULL #taking out as it shows end of season cumulative wins
+GSLog$loss <- NULL #taking out as it shows end of season cumulative losses
+GSLog$home_team <-NULL
+GSLog$away_team <-NULL
+
+
+#Set 2 Transformations
+
+GAReg = GAReg[GAReg$week_x %in% c(1:17),]
+GAReg$week_x = as.integer(GAReg$week_x)
+GAReg$winner <- NULL
+GAReg$tie <- NULL
+GAReg$home_team <-NULL
+GAReg$away_team <-NULL
 
 
 
@@ -62,16 +82,16 @@ GSLog$year_y <- NULL
 
 
 #WRANGLING STEP 3:  Your dataset may have missing values.  It's a good idea to exclude these for this analysis (though there are much better ways to handle them).  Adapt the following code to your data.
-# summary(DATA)  #check for NAs
-# DATA <- droplevels(DATA[complete.cases(DATA),])
+summary(GSLog)  #check for NAs
 
+GSLog <- droplevels(GSLog[complete.cases(GSLog),])
+GAReg <- droplevels(GAReg[complete.cases(GAReg),])
 
 
 #WRANGLING STEP 4:  If your dataset is much bigger than 1000 rows, you can take a random sample of them; adapt the code to your dataframe to reduce it to 1000 rows (or smaller if you want)
 
-# SMALLDATA <- DATA[ sample(1:nrow(DATA),size=1000), ]
-
-
+SmallLog <- GSLog[ sample(1:nrow(GSLog),size=1000), ]
+SmallReg <- GAReg[ sample(1:nrow(GAReg),size=1000), ]
 
 #WRANGLING STEP 5: 
 #If you have a numeric Y that you'd like to convert into a two-level categorical Y (e.g. High vs. Low), you can uncomment and adapt the following lines of code. The code below basically converts values into "High" or "Low" depending on if the number is greater than 3 or not.  You'll have to change data frame names, column names, and the "3" into whatever you feel is appropriate.  If you do this, ensure that the equivalent of mean(DATA$newY=="High") is between 0.20 and 0.80; if not try changing the numeric cutoff into something else
@@ -120,18 +140,26 @@ The data I'm using comes from ... (if kaggle, tell us the URL; if an .RData  fil
 ```{r Part 1,warning=FALSE}
 #Adapt the step code to your data; if ~.^2 doesn't work, try ~. instead or try to NULL out some predictors you don't find interesting.
 
-#naive <- glm(y~1,data=DATA,family=binomial) 
-#full <- glm(y~.^2,data=DATA,family=binomial) 
+naive <- glm(home_team_winner~1,data=SmallLog,family=binomial)
+full <- glm(home_team_winner~.^2,data=SmallLog,family=binomial) 
+
 
 #You can ignore warnings(), which most likely will be about fitted probabilities numerically 0 or 1 occurred
 
 
 #BEFORE KNITTING because you don't want this output in the document
 #S <- step(naive,scope=list(lower=naive,upper=full),direction="both",trace=1)
-#Have this step() command be knitted in your document instead
-#S <- step(naive,scope=list(lower=naive,upper=full),direction="both",trace=0)
-#S
 
+
+
+# Step:  AIC=1205.85
+# home_team_winner ~ points_against + points_for + pts_loss + pts_win + 
+#     points_for:pts_loss + points_for:pts_win + points_against:pts_win + 
+#     points_against:pts_loss
+
+#Have this step() command be knitted in your document instead
+S <- step(naive,scope=list(lower=naive,upper=full),direction="both",trace=0)
+S
 ```
 
 ## Part 2:  Predictive model for ... (replace the ... with what you're analyzing)
@@ -150,9 +178,11 @@ The data I'm using comes from ... (if kaggle, tell us the URL; if an .RData  fil
 #Create your training data and holdout data (adapt this code to your data and needs)
 #If you have 700+ rows, have your training set be 500 rows and keep size=500
 #Otherwise, have size=0.7*nrow(DATA)
-# set.seed(320); train.rows <- sample(1:nrow(DATA),size=500)
-#TRAIN <- DATA[train.rows,]
-#HOLDOUT <- DATA[-train.rows,]
+
+
+set.seed(320); train.rows <- sample(1:nrow(SmallReg),size=500)
+TRAIN <- SmallReg[train.rows,]
+HOLDOUT <- SmallReg[-train.rows,]
 
 
 #Adapt the build_model code to your data
@@ -161,7 +191,9 @@ The data I'm using comes from ... (if kaggle, tell us the URL; if an .RData  fil
 #Or, you can also specify to build with a particular set of predictors
 #like y~x1+x2+x4 or with interactions y~(x1+x2+x4)^2
 
-#BM <- build_model(y~.^2,data=TRAIN,type="predictive",seed=320,holdout=HOLDOUT)
+TRAIN$X <-NULL
+HOLDOUT$X <- NULL
+BM <- build_model(weekly_attendance~.,data=TRAIN,type="predictive",seed=320,holdout=HOLDOUT)
 #BM$CVtable
 
 #NOTE:  once you're happy with your build_model command you MUST add prompt=FALSE as an additional argument for it to knit!
