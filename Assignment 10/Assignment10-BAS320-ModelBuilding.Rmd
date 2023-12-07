@@ -57,7 +57,7 @@ GSLog$wins <-NULL #taking out as it shows end of season cumulative wins
 GSLog$loss <- NULL #taking out as it shows end of season cumulative losses
 GSLog$home_team <-NULL
 GSLog$away_team <-NULL
-
+#GSLog$X <- NULL
 
 #Set 2 Transformations
 
@@ -67,7 +67,7 @@ GAReg$winner <- NULL
 GAReg$tie <- NULL
 GAReg$home_team <-NULL
 GAReg$away_team <-NULL
-
+GAReg$X <-NULL
 
 
 #WRANGLING STEP 2:  if you have a categorical variable you'd like to use but it has "too many" levels, you can uncomment the following lines of code (after adapting it with the name of your columns and dataset and uncommenting it) to get it to a target number of levels.  It basically combines all the least common levels of the categorical variable into a new level called "Combined", leaving with you the desired number of levels.  Run a summary() though to make sure because if there are ties for frequencies, it may leave you with more or fewer than the target!
@@ -82,7 +82,7 @@ GAReg$away_team <-NULL
 
 
 #WRANGLING STEP 3:  Your dataset may have missing values.  It's a good idea to exclude these for this analysis (though there are much better ways to handle them).  Adapt the following code to your data.
-summary(GSLog)  #check for NAs
+#summary(GSLog)  #check for NAs
 
 GSLog <- droplevels(GSLog[complete.cases(GSLog),])
 GAReg <- droplevels(GAReg[complete.cases(GAReg),])
@@ -99,9 +99,6 @@ SmallReg <- GAReg[ sample(1:nrow(GAReg),size=1000), ]
 # DATA$newY <- factor( ifelse( DATA$numericalx > 3, "High","Low") )
 # mean(DATA$newY=="High")
 # DATA$numericalx <- NULL  #Delete the variable that categories came from
-
-
-
 
 #WRANGLING STEP 6:  
 # * If you use the MOVIEDATA in BAS320datasetsYCategoricalFall23.RData, make sure you are NOT predicting Outcome from Outcome2 or Outcome3, etc.  Once you've selected your Y variable, NULL out the the other 2 possible Outcome columns)
@@ -125,17 +122,20 @@ Code you should keep:  output of `build_model` (remember to add `prompt=FALSE` o
 Code you should delete after knitting: code reading in the data, nulling out columns, taking subsets, combining categories, creating categorical variables from numerical ones if you used it; basically everything in the R chunk above this where you do data wrangling (and any other code you created that isn't requested).
 
 
-## Part 1:  Descriptive model for ... (replace the ... with what you're analyzing)
+## Part 1:  Descriptive model for if the Home Team will Win a Football Game
 
-I'm using logistic regression to predict ... (specify your Y variable in plain English; you're predicting the probability of one of the levels, which one?) from ... (describe the X variables you're using in plain English)
+I'm using logistic regression to predict whether or not a football team that is home will win a football game. For this logistic regression I am predicting that they will win the football game (Yes level) from prior games data. This data includes predictors such as the year, what week in the season it is, the points of the winning team, the points lost by the winning team, the amount of yards gained by the winning team, the turnovers by the winning team, the yards lost by the home team, the turnovers lost by the home team, the total points for the home team in a season, the total points against the home team in a season, the strength of the home teams schedule, their offensive ranking, their defensive ranking, if they have been in the playoffs, or if they are a superbowl winner. 
 
-I'm making this model because ... (tell us why you've chosen this relationship to investigate; could be out of curiosity, or maybe being able to make this prediction would hold value to a business...).  
+I'm making this model primarily out of curiosity and to see how the predictor variables interact to make a prediction for the home team winning.
 
-The data I'm using comes from ... (if kaggle, tell us the URL; if an .RData  file, you can just tell us that) and contains a total of ... rows and ... total predictors (always important to tell us how much data).
+The best model included the amount of points against the home team, the offensive ranking of the home team,the yards lost by the home team, if the team made the playoffs, how many turnovers the team had, the interaction between offensive ranking and yards lost, the interaction of offensive ranking and turnovers lost, and finally the interaction between yards lost and turnovers lost. 
 
-(In this section, search for the "best" descriptive model based on AIC criteria.  You'll use `step` to search.  If possible, consider all two-way interactions ~.^2, but this may result in too many models in which case ~. is ok.  If necessary, you can include specific a particular set of predictors if you need to like `y~x1+x2+x4`, or include all two way interactions between them with `y~(x1+x2+x4)^2`. Start your search with the naive model.)
+It is important to note that this model doesn't hold much practical significance due to having to need to know some variables information that you would only know after a game concluded. This model is purely build to see from a descriptive perspective how the predictor variables interact and which predictor variables are best to explain the home team winning. 
 
-(Write a short sentence that talks about what predictors end up in the selected model.)
+The data I'm using comes from kaggle, however a lot of data transformations and joins were done personally with python. The data has a total of 5104 rows with 18 total variables and 17 predictor variables. 
+
+Kaggle Link: https://www.kaggle.com/datasets/sujaykapadnis/nfl-stadium-attendance-dataset
+Github: https://github.com/jguptil1/Portfolio-Projects/tree/main/FootballStandings
 
 ```{r Part 1,warning=FALSE}
 #Adapt the step code to your data; if ~.^2 doesn't work, try ~. instead or try to NULL out some predictors you don't find interesting.
@@ -152,51 +152,47 @@ full <- glm(home_team_winner~.^2,data=SmallLog,family=binomial)
 
 
 
-# Step:  AIC=1205.85
-# home_team_winner ~ points_against + points_for + pts_loss + pts_win + 
-#     points_for:pts_loss + points_for:pts_win + points_against:pts_win + 
-#     points_against:pts_loss
+# Call:  glm(formula = home_team_winner ~ points_against + offensive_ranking + 
+#     yds_loss + playoffs + turnovers_loss + offensive_ranking:yds_loss + 
+#     offensive_ranking:turnovers_loss + yds_loss:turnovers_loss, 
+#     family = binomial, data = SmallLog)
 
 #Have this step() command be knitted in your document instead
 S <- step(naive,scope=list(lower=naive,upper=full),direction="both",trace=0)
 S
 ```
 
-## Part 2:  Predictive model for ... (replace the ... with what you're analyzing)
+## Part 2:  Predictive model for the Points of the Winning Team
 
-I'm using linear regression to predict ... (specify your Y variable in plain English) from ... (describe the X variables you're using in plain English)
+I'm using linear regression to predict what the points will be for the winning team using the year, what week in the season it is, the points of the winning team, the points lost by the winning team, the amount of yards gained by the winning team, the turnovers by the winning team, the yards lost by the home team, the turnovers lost by the home team, the total points for the home team in a season, the total points against the home team in a season, the strength of the home teams schedule, their offensive ranking, their defensive ranking, if they have been in the playoffs, or if they are a Superbowl winner. 
 
-I'm making this model because ... (tell us why you've chosen this relationship to investigate; could be out of curiosity, or maybe being able to make this prediction would hold value to a business...).  
+I'm making this model because I am genuinely curious to how you would predict the points of the winning team by knowing the other variables. This could have applications for sports betting or knowing how well your team will do in a given game.
 
-The data I'm using comes from ... (if kaggle, tell us the URL; if an .RData  file, you can just tell us that) and contains a total of ... rows and ... total predictors (always important to tell us how much data).
+The data I'm using comes from kaggle, however a lot of data transformations and joins were done personally with python. The data has a total of 5104 rows with 18 total variables and 17 predictor variables. 
 
-(In this section, search for the "best" predictive model based on lowest estimated generalization error from K-fold cross-validation.  You must use `build_model` with `type="predictive"`. If possible, consider all two-way interactions ~.^2 in `build_model`, but this may result in too many models in which case ~. is ok.  If necessary, you can specific a particular set of predictors if you need to like `y~x1+x2+x4`, or include all two way interactions between them with `y~(x1+x2+x4)^2`.   This way you can run it once without interactions, find what variables appear to be "best", then go back and consider all two-way interactions between them. You may need to NULL out some predictors or combine levels of categorical variables to get this to work)
+Kaggle Link: https://www.kaggle.com/datasets/sujaykapadnis/nfl-stadium-attendance-dataset
+Github: https://github.com/jguptil1/Portfolio-Projects/tree/main/FootballStandings
 
-(Write a short sentence that talks about what predictors end up in the selected model.  Also discuss the expected/estimated generalization error of the model from K-fold cross-validation.  Finally, comment on whether the model "generalizes well" or is "overfit"; it generalizes well if the error on the holdout is no more than 10% larger than the estimated error from K-fold cross-validation.  For example, if the estimated generalization error is 143 and actual error on the holdout is 156, then 156/143= 1.09 so the error is only 9% larger; good!  If the estimated generalization error is 230 and the actual error on the holdout is 300, the error is 300/230 = 1.30 so the error is 30% larger; not good! )
+The best predictors that ended up in the model is the home team winning the game, the year of the game, the points lost by the team, yards won by the winning team, the turnovers by the winning team, the yards lost, hte turnovers lost, the total points for the team in a season, the total points against the team in a season, and if the team made it to the Superbowl in a given season. With these ten predictor variables the estimated generalized error of the model from K-fold cross validation is 6.01. The RMSE of the holdout was ~6.65 meaning that there is a 10.52% increase in error in the holdout. This tells us that the model is not great at predicting new data as the percentage of error is greater than 10% for hold out data. 
+
 
 ```{r Part 2, warning=FALSE}
 #Create your training data and holdout data (adapt this code to your data and needs)
 #If you have 700+ rows, have your training set be 500 rows and keep size=500
 #Otherwise, have size=0.7*nrow(DATA)
 
+SmallLog$day <- NULL
 
-set.seed(320); train.rows <- sample(1:nrow(SmallReg),size=500)
-TRAIN <- SmallReg[train.rows,]
-HOLDOUT <- SmallReg[-train.rows,]
+set.seed(320); train.rows <- sample(1:nrow(SmallLog),size=500)
+TRAIN2 <- SmallLog[train.rows,]
+HOLDOUT2 <- SmallLog[-train.rows,]
+BM <- build_model(pts_win~.,data=TRAIN2,type="predictive",seed=320,holdout=HOLDOUT2, prompt=FALSE)
+
+BM$CVtable
+
+6.645071/6.012168 #ratio of RMSE Holdout ot Estimated Generalized Error
 
 
-#Adapt the build_model code to your data
-#Be wary if you have to fit more than 1.1e+6 models or so
-#You might need to ~. instead of ~.^2 if you have too many variables
-#Or, you can also specify to build with a particular set of predictors
-#like y~x1+x2+x4 or with interactions y~(x1+x2+x4)^2
-
-TRAIN$X <-NULL
-HOLDOUT$X <- NULL
-BM <- build_model(weekly_attendance~.,data=TRAIN,type="predictive",seed=320,holdout=HOLDOUT)
-#BM$CVtable
-
-#NOTE:  once you're happy with your build_model command you MUST add prompt=FALSE as an additional argument for it to knit!
 ```
 
 
