@@ -9,5 +9,4 @@ Assignment 7 - Polynomial Model with Interactions (Beer) <br>
 Assignment 8 - Multiple Linear Regression with Categorical Predictors (Cell Phone Bills)
 Assignment 9 - Multiple Logistic Regression (Buying Travel Insurance Predicitions)
 Assignment 10 - Model Selection and Development - Final Course Assignment (Football Attendance and Standings predictions using multiple regression and logistic regression Modeling)
-
-Assignment 10's datasets utilized my data transformations. See the portfolio project repo for more information. 
+CaliforniaHousingPrices - Followed along to NueralNines video on linear regression in the sklearn library. I wanted to learn how to do modeling in Python, not just R.
